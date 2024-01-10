@@ -33,14 +33,6 @@ main :: proc() {
 	handles := make([dynamic]win.HWND)
 	win.EnumWindows(enum_windows_proc, transmute(win.LPARAM)&handles)
 
-	log := strings.builder_make()
-	for arg in os.args {
-		strings.write_string(&log, arg)
-		strings.write_rune(&log,' ')
-	}
-
-	os.write_entire_file("C:/Dev/odin/title_remover/log.txt", log.buf[:])
-
 	if len(os.args) < 4 {
 		fmt.println("Expected 3 Arguments, got", len(os.args) - 1)
 		print_usage()
