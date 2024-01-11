@@ -17,3 +17,7 @@ Criterium:
 Example:
 $ title_remover.exe title exact 'Minecraft Launcher'
 ```
+# Building:
+```
+odin.exe build . -subsystem=windows -o:aggressive
+```
