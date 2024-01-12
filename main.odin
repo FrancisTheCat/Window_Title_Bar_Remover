@@ -1,6 +1,7 @@
 package title_remover
 
 import "core:fmt"
+import "core:log"
 import "core:os"
 import "core:runtime"
 import "core:slice"
@@ -30,10 +31,25 @@ $ title_remover.exe title exact 'Minecraft Launcher'`,
 }
 
 main :: proc() {
+	ok := os.write_entire_file("log.txt", {0})
+	log_file_handle, err := os.open("log.txt", mode = os.O_RDWR)
+	if err != os.ERROR_NONE || !ok {
+		fmt.eprintln("Failed to create loggger:", err)
+		return
+	}
+	file_logger := log.create_file_logger(log_file_handle)
+	
+	defer{
+		log.destroy_file_logger(&file_logger)
+	}
+
+	context.logger = file_logger
+	
 	handles := make([dynamic]win.HWND)
 	win.EnumWindows(enum_windows_proc, transmute(win.LPARAM)&handles)
 
 	if len(os.args) < 4 {
+		log.error("Expected 3 Arguments, got", len(os.args) - 1)
 		fmt.println("Expected 3 Arguments, got", len(os.args) - 1)
 		print_usage()
 		return
@@ -48,6 +64,7 @@ main :: proc() {
 	case "file", "f":
 		criterium = .File
 	case:
+		log.error("Unexpected criterium:", os.args[1])
 		fmt.println("Unexpected criterium:", os.args[1])
 		print_usage()
 		return
@@ -64,18 +81,28 @@ main :: proc() {
 		match_mode = .Contain
 	case:
 		fmt.println("Unexpected verb:", os.args[2])
+		log.error("Unexpected verb:", os.args[2])
 		print_usage()
 		return
 	}
 
 	arg := os.args[3]
 
+	log.info("Criterium:", criterium)
+	log.info("Match Mode:", match_mode)
+	log.info("Arg:", arg)
+
 	for handle in handles {
 		criterium := get_criterium(handle, criterium) or_continue
 		defer delete(criterium)
 
 		if is_match(match_mode, criterium, arg) {
-			remove_window_title_bar(handle)
+			log.info("Found matching window:", criterium)
+			if remove_window_title_bar(handle) {
+				log.info("Removed title bar from window")
+			} else {
+				log.error("Failed to remove title bar from window")
+			}
 		}
 
 		free_all(context.temp_allocator)
