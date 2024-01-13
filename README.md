@@ -1,5 +1,5 @@
 # Window_Title_Bar_Remover
-Simple Cli App to remove the default title bar from a window, matching name, classname or filename
+Simple Cli App to remove the *default* title bar from all windows, matching a specified title, classname or filename
 ```
 Usage:
 $ title_remover.exe <Criterium> <Verb> <Arg>
